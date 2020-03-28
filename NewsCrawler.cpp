@@ -16,8 +16,8 @@ int main(void) {
 	const string APIKEY = "ad80aa4ebd9c4f849cd8ee1636eb84da";
 	const string THEONLINECITIZEN = "TOC";
 	//Filtered dictionary to determine whether the news articles belongs to Singapore, Business, or else World 
-	string singaporeKeyWords[] = { "Singapore", "SG", "Singaporean", "multi-ministry taskforce", "Multi-Ministry Taskforce", "Baey Yam Keng", "Lee Hsien Loong", "Khaw Boon Wan", "Ong Ye Kung", "People's Voice", "Workers' Party", "Temasek Holdings", "HDB", "LTA", "MOE", "MOH", "NEA", "NMP", "NSP", "PAP", "SPH", "WP", "SBS Transit", "SMRT", "FairPrice", "Geylang", "Holland-Bukit Timah", "Jurong", "Kranji", "MacPherson", "Potong Pasir" };
-	string businessKeyWords[] = { "Economic Development Board", "Budget", "DBS", "EDB", "GDP", "GST", "MAS", "SGX", "STI", "$", "cents" };
+	string singaporeKeyWords[] = { "Singapore", "SG", "Singaporean", "multi-ministry taskforce", "Multi-Ministry Taskforce", "Baey Yam Keng", "Khaw Boon Wan", "Lee Hsien Loong", "Ong Ye Kung", "Tan Cheng Bock", "Teo Chee Hean", "People's Voice", "Reform Party", "Workers' Party", "Temasek Holdings", "HDB", "LTA", "MOE", "MOH", "NEA", "NMP", "NSP", "PAP", "SPH", "WP", "SBS Transit", "SMRT", "FairPrice", "Geylang", "Holland-Bukit Timah", "Jurong", "Kranji", "MacPherson", "Potong Pasir" };
+	string businessKeyWords[] = { "Budget", "cents", "Economic Development Board", "economy", "economic", "finance", "Finance", "income", "recession", "salary", "stock", "tax", "DBS", "EDB", "GDP", "GST", "MAS", "SGX", "STI", "$" };
 	Document doc;
 	bool canCategorise = false;
 	vector<Article> tocArticles;
@@ -40,7 +40,7 @@ int main(void) {
 	cout << "News Articles retrieved from " << TOCURL << endl;
 	//Deencapsulates the JSON layer to retrieve the values from specified attributes (keys)
 	//Source: https://rapidjson.org/md_doc_tutorial.html
-	for (SizeType i = 0; i < 20; i++) {
+	for (SizeType i = 0; i < 30; i++) {
 		string source;
 		string title;
 		string url;
@@ -185,15 +185,19 @@ int main(void) {
 		cout << "Description: " << tocArticles[i].getContent() << endl;
 		cout << "URL: " << tocArticles[i].getURL() << endl;
 		cout << "Category: " << tocArticles[i].getCategory() << endl;
-		//string sentimentResults = toc.sentimentAnalysis(tocArticles[i].getTitle());
-		//allSentimentResults.push_back(sentimentResults);
 		cout << endl;
 	}
 	cout << "Meaningcloud Results" << endl;
-	cout << "Classification:" << endl;
-	vector<string> getClassifications = toc.analyzeClassification(tocArticles);
-	cout << "Sentimental Value: " << endl;
-	/*for (int j = 0; j < allTOCClassifications.size(); j++) {
-		cout << allSentimentResults[j] << endl;
-	}*/
+	//Returns the list of classifications
+	vector<string> getClassifications = toc.analyzeClassification("TOC", tocArticles);
+	cout << "Get Classification:" << endl;
+	for (int i = 0; i < getClassifications.size(); i++) {
+		cout << getClassifications[i] << endl;
+	}
+	//Returns the list of sentiment results that will be populated to pue chart
+	vector<int> getSentiments = toc.sentimentAnalysis(tocArticles);
+	cout << "Get Sentiments:" << endl;
+	for (int i = 0; i < getSentiments.size(); i++) {
+		cout << getSentiments[i] << endl;
+	}
 }

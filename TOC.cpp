@@ -64,13 +64,12 @@ string queryString(string s) {
     s = ReplaceStuff(s, "\"", "%22");
     return s;
 }
-vector<string> Article::analyzeClassification(vector<Article> article) {
+vector<string> Article::analyzeClassification(string fileName, vector<Article> article) {
     CURL* curl;
     CURLcode res;
     const string MEANINGCLOUDCLASSURL = "https://api.meaningcloud.com/class-1.1";
     const string APIKEY = "?key=d1d248b93272995b72eb5b36b6035f66";
     Document doc;
-    const string THEONLINECITIZEN = "TOC";
     string classification, result, relevance, text;
     TOC toc;
     vector<string> allClassificationsJSON;
@@ -102,12 +101,13 @@ vector<string> Article::analyzeClassification(vector<Article> article) {
             cout << "Text classification failed for " << text << endl;
         }
         curl_easy_cleanup(curl);
-        cout << "Result: " << result << endl;
         allClassificationsJSON.push_back(result);
         result = "";
     }
+    cout << "Text Classification Results:" << endl;
     //Do JSON crawling on retrieval of classifications
     for (int j = 0; j < allClassificationsJSON.size(); j++) {
+        cout << allClassificationsJSON[j] << endl;
         doc.Parse(allClassificationsJSON[j].c_str());
         string status = doc["status"].GetObjectW()["code"].GetString();
         //If the status retrieved is ok, check if the meaningcloud managed to classify the news articles based on its title
@@ -132,7 +132,7 @@ vector<string> Article::analyzeClassification(vector<Article> article) {
             allRelevance.push_back("0");
         }
     }
-    toc.createAnalyzedCSV(THEONLINECITIZEN, article, allClassifications, allRelevance);
+    toc.createAnalyzedCSV(fileName, article, allClassifications, allRelevance);
     return allClassifications;
 }
 void Article::createAnalyzedCSV(string fileName, vector<Article> articles, vector<string> classificationList, vector<string> relevanceList) {
@@ -179,13 +179,27 @@ vector<int> Article::sentimentAnalysis(vector<Article> article) {
     CURL* curl;
     CURLcode res;
     Document doc;
-    int score;
-    string confidence, subjectivity, score_tag, result, text;
+    int confidence;
+    string score_tag, subjectivity, result, text;
     curl = curl_easy_init();
     const string MEANINGCLOUDSENTIMENTURL = "https://api.meaningcloud.com/sentiment-2.1";
     const string APIKEY = "?key=09a2709de3d1e0d7a59e3ef3b8fe0fce";
-    vector<string> allSentimentJSON, allConfidence, allSubjectivity, allScoreTag;
-    vector<int> subjectivityQuantity;
+    vector<string> allSentimentJSON;
+    vector<int> sentimentArray;
+    /*Initialises the array index content, being
+      ARRAY INDEX CONTENT (SUM)
+      0 - P+
+      1 - P
+      2 - NEU
+      3 - N
+      4 - N+
+      5 - NONE
+      6 - CONFIDENCE
+      7 - SUBJECTIVE
+    */
+    for (int i = 0; i < 8; i++) {
+        sentimentArray.push_back(0);
+    }
     for (int i = 0; i < article.size(); i++) {
         curl = curl_easy_init();
         text = article[i].getContent();
@@ -212,19 +226,64 @@ vector<int> Article::sentimentAnalysis(vector<Article> article) {
         }
         else {
             cout << "Sentimental Analysis failed for " << text << endl;
-            cout << "Result: " << result << endl;
-            allSentimentJSON.push_back(result);
-            result = "";
         }
         curl_easy_cleanup(curl);
+        cout << "Sentimental Result: " << result << endl;
+        allSentimentJSON.push_back(result);
+        result = "";
     }
-    //Do JSON crawling on retrieval of classifications result
+    //Do JSON crawling on retrieval of sentimental result
     for (int j = 0; j < allSentimentJSON.size(); j++) {
         doc.Parse(allSentimentJSON[j].c_str());
         string status = doc["status"].GetObjectW()["code"].GetString();
         if (status == "0") {
-
+            /*Check tone of article
+            P+: strong positive
+            P: positive
+            NEU: neutral
+            N: negative
+            N+: strong negative
+            NONE: without sentiment
+            */
+            if (doc.HasMember("score_tag")) {
+                cout << "Score_Tag Test: " << doc["score_tag"].GetString() << endl;
+                score_tag = doc["score_tag"].GetString();
+                if (score_tag == "P+") {
+                    sentimentArray[0] += 1;
+                }
+                else if (score_tag == "P") {
+                    sentimentArray[1] += 1;
+                }
+                else if (score_tag == "NEU") {
+                    sentimentArray[2] += 1;
+                }
+                else if (score_tag == "N") {
+                    sentimentArray[3] += 1;
+                }
+                else if (score_tag == "N+") {
+                    sentimentArray[4] += 1;
+                }
+                else if (score_tag == "NONE") {
+                    sentimentArray[5] += 1;
+                }
+            }
+            //check if article is ironic
+            if (doc.HasMember("confidence")) {
+                cout << "Confidence Test: " << doc["confidence"].GetString() << endl;
+                confidence = stoi(doc["confidence"].GetString());
+                if (confidence > 0) {
+                    sentimentArray[6] += confidence;
+                }
+            }
+            //check what the article is all about
+            if (doc.HasMember("subjectivity")) {
+                cout << "Subjectivity Test: " << doc["subjectivity"].GetString() << endl;
+                subjectivity = doc["subjectivity"].GetString();
+                if (subjectivity == "SUBJECTIVE") {
+                    sentimentArray[7] += 1;
+                }
+            }
         }
     }
-    return subjectivityQuantity;
+    return sentimentArray;
 }

@@ -24,7 +24,7 @@ public:
 	void setCategory(string);
 	string getCategory();
 	void createCSV(string, vector<Article>);
-	vector<string> analyzeClassification(vector<Article>);
+	vector<string> analyzeClassification(string, vector<Article>);
 	void createAnalyzedCSV(string, vector<Article>, vector<string>, vector<string>);
 	vector<int> sentimentAnalysis(vector<Article> article);
 };
