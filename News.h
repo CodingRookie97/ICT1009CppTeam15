@@ -3,6 +3,5 @@
 class News : public Article
 {
 public:
-	void crawl(int);
 };
 
