@@ -66,5 +66,9 @@
     <None Include="CNA_Analyzed.csv" />
     <None Include="TOC.csv" />
     <None Include="TOC_Analyzed.csv" />
+    <None Include="thestar.csv" />
+    <None Include="thestar_Analyzed.csv" />
+    <None Include="TST.csv" />
+    <None Include="TST_Analyzed.csv" />
   </ItemGroup>
 </Project>
