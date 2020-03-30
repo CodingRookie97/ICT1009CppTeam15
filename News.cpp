@@ -2,10 +2,11 @@
 #include <iostream>
 #include <fstream>
 #include <curl/curl.h>
+#include <cpr/cpr.h>
 #include <algorithm>
 #include <string>
 #include "rapidjson/document.h"
-#include "TOC.h"
+#include "News.h"
 
 //For writting curl output into string
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
@@ -51,7 +52,7 @@ void Article::createCSV(string fileName, vector<Article> articles) {
 /*
 public queryString(string): parses normal string into URL querry format.
 Source: https://en.wikipedia.org/wiki/Query_string
-private ReplaceStuff(): used by queryString() to escape stuff.  
+private ReplaceStuff(): used by queryString() to escape stuff.
 Source:https://stackoverflow.com/questions/2896600/how-to-replace-all-occurrences-of-a-character-in-string
 */
 string ReplaceStuff(string str, const string& from, const string& to) {
@@ -81,7 +82,7 @@ vector<string> Article::analyzeClassification(string fileName, vector<Article> a
     const string APIKEY = "?key=d1d248b93272995b72eb5b36b6035f66";
     Document doc;
     string classification, result, relevance, text;
-    TOC toc;
+    News news;
     vector<string> allClassificationsJSON;
     vector<string> allClassifications;
     vector<string> allRelevance;
@@ -142,7 +143,7 @@ vector<string> Article::analyzeClassification(string fileName, vector<Article> a
             allRelevance.push_back("0");
         }
     }
-    toc.createAnalyzedCSV(fileName, article, allClassifications, allRelevance);
+    news.createAnalyzedCSV(fileName, article, allClassifications, allRelevance);
     return allClassifications;
 }
 void Article::createAnalyzedCSV(string fileName, vector<Article> articles, vector<string> classificationList, vector<string> relevanceList) {
@@ -223,7 +224,7 @@ vector<int> Article::sentimentAnalysis(vector<Article> article) {
         apiURL.append("&of=json");
         apiURL.append("&lang=en");
         apiURL.append("&model=general");
-        TOC toc;
+        News news;
         if (curl) {
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_easy_setopt(curl, CURLOPT_URL, apiURL.c_str());
@@ -298,4 +299,259 @@ vector<int> Article::sentimentAnalysis(vector<Article> article) {
         }
     }
     return sentimentArray;
+}
+vector<Article> Article::crawl(int flag) {
+    //Initializes the constants
+    const int PAGESIZE = 100;
+    const string SOURCES[] = { "theonlinecitizen.com", "channelnewsasia.com", "straitstimes.com", "thestar.com.my" };
+    const string APIKEYS[] = { "ad80aa4ebd9c4f849cd8ee1636eb84da", "d21901395a414e5b98483b9d6630e18b" };
+    const string WEBSITES[] = { "TOC", "CNA", "TST", "thestar" };
+    //const string APIKEY = "ad80aa4ebd9c4f849cd8ee1636eb84da";
+    //Filtered dictionary to determine whether the news articles belongs to Singapore, Business, or else World (For TOC)
+    string singaporeKeyWords[] = { "Singapore", "SG", "Singaporean", "multi-ministry taskforce", "Multi-Ministry Taskforce", "Baey Yam Keng", "Khaw Boon Wan", "Lee Hsien Loong", "Ong Ye Kung", "Tan Cheng Bock", "Teo Chee Hean", "People's Voice", "Reform Party", "Workers' Party", "Temasek Holdings", "HDB", "LTA", "MOE", "MOH", "NEA", "NMP", "NSP", "PAP", "SPH", "WP", "SBS Transit", "SMRT", "FairPrice", "Lianhe Zaobao", "The Straits Times", "Geylang", "Holland-Bukit Timah", "Jurong", "Kranji", "MacPherson", "Potong Pasir" };
+    string businessKeyWords[] = { "Budget", "cents", "Economic Development Board", "economy", "economic", "finance", "Finance", "income", "recession", "salary", "snewsk", "tax", "DBS", "EDB", "GDP", "GST", "MAS", "SGX", "STI", "$" };
+    Document doc;
+    bool canCategorise = false;
+    vector<Article> newsArticles;
+    //Creates new child article objects
+    News news;
+    //Initialize the query URL to use for News API to return all news articles belonging to The Online Citizen
+    string getNewsArticlesURL = "http://newsapi.org/v2/everything?domains=";
+    getNewsArticlesURL.append(SOURCES[flag]);
+    getNewsArticlesURL.append("&pageSize=" + to_string(PAGESIZE));
+    getNewsArticlesURL.append("&sortBy=publishedAt");
+    getNewsArticlesURL.append("&apiKey=" + APIKEYS[1]);
+    //Handles the HTTP REST Request
+    //Source: https://www.codeproject.com/Articles/1244632/Making-HTTP-REST-Request-in-Cplusplus
+    auto r = cpr::Get(cpr::Url{ getNewsArticlesURL });
+    //Configures the console to allow displaying of all characters encoded to UTF-8
+    //Source: https://stackoverflow.com/questions/2492077/output-unicode-strings-in-windows-console-app
+    SetConsoleOutputCP(CP_UTF8);
+    //Parses the document
+    doc.Parse(r.text.c_str());
+    cout << "News Articles retrieved from " << SOURCES[flag] << endl;
+    //Deencapsulates the JSON layer to retrieve the values from specified attributes (keys)
+    //Source: https://rapidjson.org/md_doc_tutorial.html
+    for (SizeType i = 0; i < PAGESIZE; i++)
+    {
+        string source;
+        string title;
+        string url;
+        string date;
+        int day;
+        int month;
+        int year;
+        int checkIndex = 0;
+        string description;
+        string category;
+        int singaporeKeyWordLen = sizeof(singaporeKeyWords) / sizeof(singaporeKeyWords[0]);
+        int businessKeyWordLen = sizeof(businessKeyWords) / sizeof(businessKeyWords[0]);
+        canCategorise = false;
+        if (doc["articles"][i].HasMember("source"))
+        {
+            if (doc["articles"][i]["source"].HasMember("name"))
+            {
+                if (doc["articles"][i]["source"]["name"].IsString())
+                {
+                    source = doc["articles"][i]["source"]["name"].GetString();
+                    news.setSource(source);
+                }
+            }
+        }
+        if (doc["articles"][i].HasMember("title"))
+        {
+            if (doc["articles"][i]["title"].IsString())
+            {
+                title = doc["articles"][i]["title"].GetString();
+                // if TOC or thestar
+                if (flag == 0 || flag == 3)
+                {
+                    //This is to determine whether the news articles belong to Singapore, Business or world via the defined keywords in the array from the article's title attribute from JSON
+                    while (checkIndex < businessKeyWordLen)
+                    {
+                        //If is not categorised yet
+                        if (!canCategorise)
+                        {
+                            //Perform a comparison to check if the content matches the business keywords from the array
+                            if (strstr(title.c_str(), businessKeyWords[checkIndex].c_str()))
+                            {
+                                //If the comparison matches, the news is determined to be a business news
+                                category = "Business";
+                                canCategorise = true;
+                            }
+                            else
+                            {
+                                checkIndex++;
+                            }
+                        }
+                        //Exit the while loop if the Business category is already determined
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    //Reset index count to determine Singapore News next, if cannot determine Business news
+                    checkIndex = 0;
+                    while (checkIndex < singaporeKeyWordLen)
+                    {
+                        if (!canCategorise)
+                        {
+                            //Perform a comparison to check if the content matches the Singapore keywords from the array
+                            if (strstr(title.c_str(), singaporeKeyWords[checkIndex].c_str()))
+                            {
+                                //If the comparison matches, the news is determined to be a Singapore news
+                                category = "Singapore";
+                                canCategorise = true;
+                            }
+                            else
+                            {
+                                checkIndex++;
+                            }
+                        }
+                        //Exit the while loop if the Singapore category is already determined
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    news.setCategory(category);
+                }
+                news.setTitle(title);
+            }
+            else {
+                continue;
+            }
+        }
+        if (doc["articles"][i].HasMember("url"))
+        {
+            url = doc["articles"][i]["url"].GetString();
+            news.setURL(url);
+            // if not TOC and not thestar
+            if (flag != 0 && flag != 3) {
+                int startIndex;
+                // if CNA
+                if (flag == 1) {
+                    startIndex = 36;
+                }
+                else if (flag == 2) {
+                    startIndex = 28;
+                }
+                else {
+                    break;
+                }
+                string sg = url.substr(startIndex, 11);
+                string bu = url.substr(startIndex, 10);
+                string wr = url.substr(startIndex, 7);
+                string as = url.substr(startIndex, 6);
+                if (sg == "/singapore/") {
+                    category = "Singapore";
+                }
+                else if (bu == "/business/") {
+                    category = "Business";
+                }
+                else if (wr == "/world/" || as == "/asia/") {
+                    category = "World";
+                }
+                else {
+                    category = "NULL";
+                    continue;
+                }
+                news.setCategory(category);
+            }
+        }
+        if (doc["articles"][i].HasMember("publishedAt"))
+        {
+            date = doc["articles"][i]["publishedAt"].GetString();
+            if (sscanf(date.c_str(), "%d-%d-%d", &year, &month, &day))
+            {
+                date = to_string(day) + "/" + to_string(month) + "/" + to_string(year);
+            }
+            else
+            {
+                cout << "Error parsing date!" << endl;
+            }
+            news.setDate(date);
+        }
+        checkIndex = 0;
+        if (doc["articles"][i].HasMember("description"))
+        {
+            if (doc["articles"][i]["description"].IsString())
+            {
+                description = doc["articles"][i]["description"].GetString();
+                // if TOC or thestar
+                if (flag == 0 || flag == 3) {
+                    //This is to determine whether the news articles belong to Singapore, Business or world via the defined keywords in the array from the article's description attribute from JSON
+                    while (checkIndex < businessKeyWordLen)
+                    {
+                        //If is not categorised yet
+                        if (!canCategorise)
+                        {
+                            //Perform a comparison to check if the content matches the business keywords from the array
+                            if (strstr(description.c_str(), businessKeyWords[checkIndex].c_str()))
+                            {
+                                //If the comparison matches, the news is determined to be a business news
+                                category = "Business";
+                                canCategorise = true;
+                            }
+                            else
+                            {
+                                checkIndex++;
+                            }
+                        }
+                        //Exit the while loop if the Business category is already determined
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    //Reset index count to determine Singapore News next, if cannot determine Business news
+                    checkIndex = 0;
+                    while (checkIndex < singaporeKeyWordLen)
+                    {
+                        if (!canCategorise)
+                        {
+                            //Perform a comparison to check if the content matches the Singapore keywords from the array
+                            if (strstr(description.c_str(), singaporeKeyWords[checkIndex].c_str()))
+                            {
+                                //If the comparison matches, the news is determined to be a Singapore news
+                                category = "Singapore";
+                                canCategorise = true;
+                            }
+                            else
+                            {
+                                checkIndex++;
+                            }
+                        }
+                        //Exit the while loop if the Singapore category is already determined
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    //If any of the content does not match Business/Singapore keywords, the news will be categorised into World news
+                    if (!canCategorise)
+                    {
+                        category = "World";
+                    }
+                    news.setCategory(category);
+                }
+                news.setContent(description);
+            }
+            else {
+                continue;
+            }
+        }
+        //Add the objects to the vector array
+        // If TST or CNA
+        if (flag != 0 && flag != 3) {
+            if (category != "NULL") {
+                newsArticles.push_back(news);
+            }
+        }
+        // if TOC or thestar
+        else {
+            newsArticles.push_back(news);
+        }
+    }
+    return newsArticles;
 }

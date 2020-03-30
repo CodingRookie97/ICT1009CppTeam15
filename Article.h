@@ -2,7 +2,8 @@
 #include <iostream>
 #include <vector>
 using namespace std;
-class Article {
+class Article
+{
 private:
 	string title;
 	string source;
@@ -26,5 +27,8 @@ public:
 	void createCSV(string, vector<Article>);
 	vector<string> analyzeClassification(string, vector<Article>);
 	void createAnalyzedCSV(string, vector<Article>, vector<string>, vector<string>);
-	vector<int> sentimentAnalysis(vector<Article> article);
+	vector<int> sentimentAnalysis(vector<Article>);
+	vector<Article> crawl(int);
 };
+
+
