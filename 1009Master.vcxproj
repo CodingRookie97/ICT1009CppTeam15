@@ -149,18 +149,16 @@
   <ItemGroup>
     <ClInclude Include="1009Master.h" />
     <ClInclude Include="Article.h" />
-    <ClInclude Include="CNA.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="News.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="TOC.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="1009Master.cpp" />
     <ClCompile Include="Article.cpp" />
-    <ClCompile Include="CNA.cpp" />
+    <ClCompile Include="News.cpp" />
     <ClCompile Include="NewsCrawler.cpp" />
-    <ClCompile Include="TOC.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="1009Master.rc" />
@@ -168,6 +166,12 @@
   <ItemGroup>
     <Image Include="1009Master.ico" />
     <Image Include="small.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CNA.csv" />
+    <None Include="CNA_Analyzed.csv" />
+    <None Include="TOC.csv" />
+    <None Include="TOC_Analyzed.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

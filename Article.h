@@ -4,6 +4,7 @@
 using namespace std;
 class Article
 {
+	friend ostream& operator<<(ostream&, Article&);
 private:
 	string title;
 	string source;

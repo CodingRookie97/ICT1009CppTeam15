@@ -8,7 +8,7 @@
 #include "rapidjson/document.h"
 #include "News.h"
 
-//For writting curl output into string
+//For writing curl output into string
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
 {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
@@ -17,6 +17,9 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* use
 using namespace std;
 using namespace rapidjson;
 
+/*
+createCSV(string fileName, vector<Article> articles): For outputting of the news articled crawled into the CSV file
+*/
 void Article::createCSV(string fileName, vector<Article> articles) {
     string title, source, content, date, url, category;
     std::ofstream newsCSV;
@@ -71,7 +74,7 @@ string queryString(string s) {
     return s;
 }
 /*
-vector<string> textClassification(string,vector<Article>): returns json results of meaningCloud text classification.
+vector<string> textClassification(string,vector<Article>): returns list of all MeaningCloud text classification.
 Source: https://www.meaningcloud.com/developer/text-classification/doc/1.1/request
 Source 2: https://stackoverflow.com/questions/9786150/save-curl-content-result-into-a-string-in-c
 */
@@ -146,6 +149,10 @@ vector<string> Article::analyzeClassification(string fileName, vector<Article> a
     news.createAnalyzedCSV(fileName, article, allClassifications, allRelevance);
     return allClassifications;
 }
+
+/*
+createAnalyzedCSV(string fileName, vector<Article> articles, vector<string> classificationList, vector<string> relevanceList): This is to output the updated results together with the classification results from MeaningCloud API
+*/
 void Article::createAnalyzedCSV(string fileName, vector<Article> articles, vector<string> classificationList, vector<string> relevanceList) {
     string title, source, content, date, url, category, classification, relevance;
     std::ofstream newsCSV;
@@ -187,7 +194,9 @@ void Article::createAnalyzedCSV(string fileName, vector<Article> articles, vecto
     newsCSV.close();
 }
 
-
+/*
+vector<int> Article::sentimentAnalysis(vector<Article> article): This will run the sentiment anaylysis function using MeaningCloud API and will return a set of sentimental values such as each score tag, confidence and subjectivity levels
+*/
 vector<int> Article::sentimentAnalysis(vector<Article> article) {
     CURL* curl;
     CURLcode res;
@@ -300,6 +309,9 @@ vector<int> Article::sentimentAnalysis(vector<Article> article) {
     }
     return sentimentArray;
 }
+/*
+vector<Article> Article::crawl(int flag): Crawls the news sources selected using News API
+*/
 vector<Article> Article::crawl(int flag) {
     //Initializes the constants
     const int PAGESIZE = 100;
@@ -309,7 +321,7 @@ vector<Article> Article::crawl(int flag) {
     //const string APIKEY = "ad80aa4ebd9c4f849cd8ee1636eb84da";
     //Filtered dictionary to determine whether the news articles belongs to Singapore, Business, or else World (For TOC)
     string singaporeKeyWords[] = { "Singapore", "SG", "Singaporean", "multi-ministry taskforce", "Multi-Ministry Taskforce", "Baey Yam Keng", "Khaw Boon Wan", "Lee Hsien Loong", "Ong Ye Kung", "Tan Cheng Bock", "Teo Chee Hean", "People's Voice", "Reform Party", "Workers' Party", "Temasek Holdings", "HDB", "LTA", "MOE", "MOH", "NEA", "NMP", "NSP", "PAP", "SPH", "WP", "SBS Transit", "SMRT", "FairPrice", "Lianhe Zaobao", "The Straits Times", "Geylang", "Holland-Bukit Timah", "Jurong", "Kranji", "MacPherson", "Potong Pasir" };
-    string businessKeyWords[] = { "Budget", "cents", "Economic Development Board", "economy", "economic", "finance", "Finance", "income", "recession", "salary", "snewsk", "tax", "DBS", "EDB", "GDP", "GST", "MAS", "SGX", "STI", "$" };
+    string businessKeyWords[] = { "Budget", "cents", "Economic Development Board", "economy", "economic", "finance", "Finance", "income", "recession", "salary", "tax", "wages", "DBS", "EDB", "GDP", "GST", "MAS", "SGX", "STI", "$" };
     Document doc;
     bool canCategorise = false;
     vector<Article> newsArticles;
@@ -439,6 +451,7 @@ vector<Article> Article::crawl(int flag) {
                 else {
                     break;
                 }
+                //Filter the websites to different categories based on different URLs
                 string sg = url.substr(startIndex, 11);
                 string bu = url.substr(startIndex, 10);
                 string wr = url.substr(startIndex, 7);

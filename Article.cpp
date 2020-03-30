@@ -38,3 +38,15 @@ void Article::setCategory(string c) {
 string Article::getCategory() {
 	return this->category;
 }
+ostream& operator<<(ostream& out, Article& news)
+{
+	out << "Title: " << news.getTitle() << endl;
+	out << "Source: " << news.getSource() << endl;
+	out << "Date: " << news.getDate() << endl;
+	out << "Description: " << news.getContent() << endl;
+	out << "URL: " << news.getURL() << endl;
+	out << "Category: " << news.getCategory() << endl;
+	out << endl;
+
+	return out;
+}

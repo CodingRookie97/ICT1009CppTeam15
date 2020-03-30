@@ -30,11 +30,8 @@
     <ClInclude Include="Article.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="CNA.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TOC.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="News.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -44,13 +41,10 @@
     <ClCompile Include="Article.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CNA.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="NewsCrawler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TOC.cpp">
+    <ClCompile Include="News.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -66,5 +60,11 @@
     <Image Include="1009Master.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="CNA.csv" />
+    <None Include="CNA_Analyzed.csv" />
+    <None Include="TOC.csv" />
+    <None Include="TOC_Analyzed.csv" />
   </ItemGroup>
 </Project>

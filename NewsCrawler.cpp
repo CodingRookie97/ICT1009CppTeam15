@@ -34,13 +34,7 @@ int main(void)
 	for (int i = 0; i < newsArticles.size(); i++)
 	{
 		cout << "News Article #" << i + 1 << endl;
-		cout << "Title: " << newsArticles[i].getTitle() << endl;
-		cout << "Source: " << newsArticles[i].getSource() << endl;
-		cout << "Date: " << newsArticles[i].getDate() << endl;
-		cout << "Description: " << newsArticles[i].getContent() << endl;
-		cout << "URL: " << newsArticles[i].getURL() << endl;
-		cout << "Category: " << newsArticles[i].getCategory() << endl;
-		cout << endl;
+		cout << newsArticles[i];
 	}
 	cout << "Meaningcloud Results" << endl;
 	//Returns the list of classifications
