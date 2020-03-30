@@ -124,7 +124,7 @@ vector<string> Article::analyzeClassification(string fileName, vector<Article> a
         cout << allClassificationsJSON[j] << endl;
         doc.Parse(allClassificationsJSON[j].c_str());
         string status = doc["status"].GetObjectW()["code"].GetString();
-        //If the status retrieved is ok, check if the meaningcloud managed to classify the news articles based on its title
+        //If the status retrieved is ok, check if the meaningcloud managed to classify the news articles based on its content
         if (status == "0") {
             if (doc["category_list"].GetArray().Size() > 0) {
                 if (doc["category_list"][0].HasMember("label")) {
@@ -319,13 +319,13 @@ vector<Article> Article::crawl(int flag) {
     const string APIKEYS[] = { "ad80aa4ebd9c4f849cd8ee1636eb84da", "d21901395a414e5b98483b9d6630e18b" };
     const string WEBSITES[] = { "TOC", "CNA", "TST", "thestar" };
     //const string APIKEY = "ad80aa4ebd9c4f849cd8ee1636eb84da";
-    //Filtered dictionary to determine whether the news articles belongs to Singapore, Business, or else World (For TOC)
+    //Filtered dictionary to determine whether the news articles belongs to Singapore, Business, or else World (For TOC & The Star)
     string singaporeKeyWords[] = { "Singapore", "SG", "Singaporean", "multi-ministry taskforce", "Multi-Ministry Taskforce", "Baey Yam Keng", "Khaw Boon Wan", "Lee Hsien Loong", "Ong Ye Kung", "Tan Cheng Bock", "Teo Chee Hean", "People's Voice", "Reform Party", "Workers' Party", "Temasek Holdings", "HDB", "LTA", "MOE", "MOH", "NEA", "NMP", "NSP", "PAP", "SPH", "WP", "SBS Transit", "SMRT", "FairPrice", "Lianhe Zaobao", "The Straits Times", "Geylang", "Holland-Bukit Timah", "Jurong", "Kranji", "MacPherson", "Potong Pasir" };
     string businessKeyWords[] = { "Budget", "cents", "Economic Development Board", "economy", "economic", "finance", "Finance", "income", "recession", "salary", "tax", "wages", "DBS", "EDB", "GDP", "GST", "MAS", "SGX", "STI", "$" };
     Document doc;
     bool canCategorise = false;
     vector<Article> newsArticles;
-    //Creates new child article objects
+    //Creates new child article object called News
     News news;
     //Initialize the query URL to use for News API to return all news articles belonging to The Online Citizen
     string getNewsArticlesURL = "http://newsapi.org/v2/everything?domains=";
