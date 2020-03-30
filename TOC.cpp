@@ -7,7 +7,7 @@
 #include "rapidjson/document.h"
 #include "TOC.h"
 
-//For writting output into string
+//For writting curl output into string
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp)
 {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
@@ -48,7 +48,12 @@ void Article::createCSV(string fileName, vector<Article> articles) {
     }
     newsCSV.close();
 }
-
+/*
+public queryString(string): parses normal string into URL querry format.
+Source: https://en.wikipedia.org/wiki/Query_string
+private ReplaceStuff(): used by queryString() to escape stuff.  
+Source:https://stackoverflow.com/questions/2896600/how-to-replace-all-occurrences-of-a-character-in-string
+*/
 string ReplaceStuff(string str, const string& from, const string& to) {
     size_t start_pos = 0;
     while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
@@ -64,6 +69,11 @@ string queryString(string s) {
     s = ReplaceStuff(s, "\"", "%22");
     return s;
 }
+/*
+vector<string> textClassification(string,vector<Article>): returns json results of meaningCloud text classification.
+Source: https://www.meaningcloud.com/developer/text-classification/doc/1.1/request
+Source 2: https://stackoverflow.com/questions/9786150/save-curl-content-result-into-a-string-in-c
+*/
 vector<string> Article::analyzeClassification(string fileName, vector<Article> article) {
     CURL* curl;
     CURLcode res;
@@ -82,9 +92,9 @@ vector<string> Article::analyzeClassification(string fileName, vector<Article> a
         string apiURL = "";
         apiURL.append(MEANINGCLOUDCLASSURL);
         apiURL.append(APIKEY);
-        apiURL.append("&of=json");
+        apiURL.append("&of=json");//specify output to be json
         apiURL.append("&txt=" + text);
-        apiURL.append("&model=IPTC_en");
+        apiURL.append("&model=IPTC_en");//set language as english
         if (curl) {
             curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
             curl_easy_setopt(curl, CURLOPT_URL, apiURL.c_str());
@@ -175,6 +185,8 @@ void Article::createAnalyzedCSV(string fileName, vector<Article> articles, vecto
     }
     newsCSV.close();
 }
+
+
 vector<int> Article::sentimentAnalysis(vector<Article> article) {
     CURL* curl;
     CURLcode res;
