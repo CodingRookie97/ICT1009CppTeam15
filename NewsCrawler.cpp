@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <cpr/cpr.h>
+#include <fstream>
 #include <windows.h>
 #include "rapidjson/document.h"
 #include "Article.h"
@@ -16,11 +17,19 @@ bool sortByValDesc(const pair<string, int> &a, const pair<string, int> &b)
 {
 	return (a.second > b.second);
 }
+void outputTxtFile(string filename, string output) {
+	ofstream txtFile;
+	txtFile.open("C:\\Users\\Jerone Poh\\Desktop\\" + filename + ".txt");
+	txtFile << output;
+	txtFile.close();
+}
 int main(void)
 {
 	const string WEBSITES[] = { "TOC", "CNA", "TST", "thestar" };
 	News news;
 	int flag;
+	int maxConfidence = 0, noOfArticles = 0;
+	string output = "";
 
 	// Temporary Input
 	cout << "Enter source number (0: TOC, 1: CNA, 2: TST, 3: thestar): ";
@@ -28,6 +37,7 @@ int main(void)
 	// Temporary Input
 
 	vector<Article> newsArticles = news.crawl(flag);
+	noOfArticles = newsArticles.size();
 	//Populate into a CSV file
 	news.createCSV(WEBSITES[flag], newsArticles);
 	//Iterate and display the crawling results into console
@@ -80,6 +90,8 @@ int main(void)
 	cout << "All Classifications (Sorted) In Descending Order: " << endl;
 	for (int j = 0; j < cQuantityVec.size(); j++)
 	{
+		string classText = cQuantityVec[j].first + ": " + to_string(cQuantityVec[j].second) + "\n";
+		output += classText;
 		cout << cQuantityVec[j].first << ": " << cQuantityVec[j].second << " time(s)" << endl;
 	}
 	//Returns the list of sentiment results that will be populated to pie chart
@@ -87,6 +99,11 @@ int main(void)
 	cout << "Get Sentiments:" << endl;
 	for (int k = 0; k < getSentiments.size(); k++)
 	{
+		output += to_string(getSentiments[k]) + "\n";
 		cout << getSentiments[k] << endl;
 	}
+	maxConfidence = noOfArticles * 100;
+	output += to_string(maxConfidence) + "\n";
+	output += to_string(noOfArticles);
+	outputTxtFile(WEBSITES[flag], output);
 }

@@ -321,7 +321,7 @@ vector<Article> Article::crawl(int flag) {
     //const string APIKEY = "ad80aa4ebd9c4f849cd8ee1636eb84da";
     //Filtered dictionary to determine whether the news articles belongs to Singapore, Business, or else World (For TOC & The Star)
     string singaporeKeyWords[] = { "Singapore", "SG", "Singaporean", "multi-ministry taskforce", "Multi-Ministry Taskforce", "Baey Yam Keng", "Khaw Boon Wan", "Lee Hsien Loong", "Ong Ye Kung", "Tan Cheng Bock", "Teo Chee Hean", "People's Voice", "Reform Party", "Workers' Party", "Temasek Holdings", "HDB", "LTA", "MOE", "MOH", "NEA", "NMP", "NSP", "PAP", "SPH", "WP", "SBS Transit", "SMRT", "FairPrice", "Lianhe Zaobao", "The Straits Times", "Geylang", "Holland-Bukit Timah", "Jurong", "Kranji", "MacPherson", "Potong Pasir" };
-    string businessKeyWords[] = { "Budget", "cents", "Economic Development Board", "economy", "economic", "finance", "Finance", "income", "recession", "salary", "tax", "wages", "DBS", "EDB", "GDP", "GST", "MAS", "SGX", "STI", "$" };
+    string businessKeyWords[] = { "Business", "businesses", "Budget", "cents", "Economic Development Board", "economy", "economies", "economic", "employment", "finance", "Finance", "income", "purchasing managers' index", "recession", "salary", "tax", "wages", "DBS", "EDB", "GDP", "GST", "MAS", "SGX", "STI", "$" };
     Document doc;
     bool canCategorise = false;
     vector<Article> newsArticles;
